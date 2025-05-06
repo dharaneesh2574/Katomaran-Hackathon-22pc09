@@ -1,0 +1,94 @@
+Okay, here is a more defined explanation of the problem statement based on the "Katomaran Hackathon May 2025.pdf" document:
+
+## Hackathon Task: Face Recognition Platform with Real-Time AI Q&A using RAG
+
+### Objective:
+
+The main goal is to create a web application accessible via a browser. This application should allow users to register their faces and then recognize those registered faces in real-time using a laptop's camera feed[cite: 1, 2]. The platform needs to handle recognizing multiple faces at once and feature a chat interface[cite: 2]. This chat interface should use a Retrieval-Augmented Generation (RAG) system to answer questions about face registration activities[cite: 2, 10].
+
+### Core Functional Modules to Build:
+
+1.  **Registration Tab**[cite: 3]:
+    * Needs to access the user's laptop webcam or an external camera[cite: 3].
+    * Must detect faces in the video feed and capture images using face recognition libraries[cite: 4].
+    * Users should be able to assign a name to the face being registered[cite: 4].
+    * The system must store the facial encoding data along with metadata like the person's name and the time they registered in a database of your choice[cite: 5].
+    * Should allow registering multiple different faces[cite: 5].
+2.  **Live Recognition Tab**[cite: 6]:
+    * Must stream the live feed from the webcam[cite: 6].
+    * Needs to continuously scan the video feed to find faces that match the stored encodings[cite: 6].
+    * For every recognized face, it should display a bounding box around the face and the corresponding name in real-time[cite: 7].
+    * Must be capable of recognizing multiple registered faces simultaneously within the same video frame[cite: 7].
+    * *Note:* It's acceptable to process only one or two frames per second if necessary due to laptop performance limitations[cite: 8].
+3.  **Chat-Based Query Interface**[cite: 9]:
+    * Requires a chat widget embedded within the web application's frontend[cite: 9].
+    * Communication between the frontend (React), backend (Node.js), and the Python RAG engine should happen via WebSockets[cite: 9].
+    * The RAG engine's purpose is to answer user queries about registration data (e.g., "Who registered last?", "When was Karthik registered?", "How many people are registered?")[cite: 10, 11].
+    * This engine should use vector similarity search (preferably with FAISS) and an LLM API (specifically OpenAI's ChatGPT) to generate answers[cite: 10, 12].
+
+### Mandatory Tech Stack[cite: 13]:
+
+* **Frontend:** React.js
+* **Backend:** Node.js (for API and WebSocket server)
+* **Face Recognition:** Python
+* **RAG:** Python (LangChain + FAISS + LLM preferred) [cite: 12]
+* **Database:** Any database system
+* **LLM:** OpenAI's ChatGPT (using your own API tokens during development) [cite: 10, 12]
+
+This task combines full-stack development with AI/ML, specifically focusing on face recognition and implementing a RAG-based Q&A system integrated via WebSockets[cite: 2, 9, 14]. Participants are encouraged to focus on their area of preference (AI or Full Stack)[cite: 15].
+
+Profect Flow
+
+Okay, here's an explanation of the flow for each component based on the hackathon document:
+
+### 1. Frontend (React.js)
+
+The Frontend is the user's primary interaction point.
+
+* **Registration Tab Flow**:
+    1.  **Access Camera**: The React app requests access to the user's webcam using browser APIs[cite: 3].
+    2.  **Display Feed**: It displays the live video stream within the Registration Tab[cite: 3].
+    3.  **Capture & Send Frame**: When the user initiates registration, the Frontend likely captures a frame (or frames) from the video feed. It might send this image data to the Backend API.
+    4.  **Receive Recognition/Encoding Request**: The Frontend might prompt the user to enter a name for the detected face[cite: 4].
+    5.  **Send Registration Data**: It sends the captured face data (or instructions to process the stream) and the assigned name to the Backend API to trigger the registration process in the Python Face Recognition module[cite: 4, 5].
+    6.  **Display Confirmation**: Shows feedback to the user (e.g., "Registration successful").
+* **Live Recognition Tab Flow**:
+    1.  **Access Camera & Display Feed**: Similar to registration, it accesses the camera and displays the live stream[cite: 6].
+    2.  **Send Frames for Recognition**: Continuously (or periodically, e.g., 1-2 frames/sec [cite: 8]), it sends frames from the video stream to the Backend API for recognition.
+    3.  **Receive Recognition Results**: It receives data back from the Backend (via the Python Face Recognition module). This data includes coordinates for bounding boxes and names for any recognized faces[cite: 7].
+    4.  **Overlay Information**: The React app draws the bounding boxes and names over the live video feed in real-time[cite: 7].
+* **Chat Interface Flow**:
+    1.  **Establish WebSocket**: The React app establishes a WebSocket connection with the Node.js Backend server[cite: 9].
+    2.  **Send User Query**: When the user types a message in the chat widget and hits send, the Frontend sends this query text over the WebSocket to the Node.js server[cite: 9].
+    3.  **Receive RAG Response**: It listens on the WebSocket for responses coming back from the RAG engine (via the Node.js server)[cite: 9].
+    4.  **Display Response**: Displays the RAG engine's answer in the chat widget[cite: 9].
+
+### 2. Backend (Node.js)
+
+The Backend acts as the intermediary, handling API requests and managing WebSocket communication.
+
+* **API Role (Registration & Recognition)**:
+    1.  **Receive Frontend Requests**: Listens for HTTP requests from the React Frontend (e.g., requests to register a face with name/image data, requests to analyze a frame for recognition).
+    2.  **Forward to Python**: Forwards these requests (potentially processing/validating them first) to the appropriate Python service (Face Recognition). How this forwarding happens isn't specified (could be another REST API call, RPC, message queue).
+    3.  **Receive Python Responses**: Gets results back from the Python services (e.g., confirmation of registration, recognized face data).
+    4.  **Send Response to Frontend**: Sends these results back to the React Frontend in the HTTP response.
+* **WebSocket Server Role (Chat)**:
+    1.  **Manage Connections**: Establishes and maintains WebSocket connections with both the React Frontend and the Python RAG engine[cite: 9].
+    2.  **Relay Frontend Query**: When a chat message arrives from the Frontend's WebSocket connection, it forwards this message to the RAG engine's WebSocket connection[cite: 9].
+    3.  **Relay RAG Response**: When an answer arrives from the RAG engine's WebSocket connection, it forwards this answer back to the correct Frontend client's WebSocket connection[cite: 9].
+
+### 3. RAG Engine (Python)
+
+This component handles answering natural language questions about registration data.
+
+* **Chat Query Flow**:
+    1.  **Establish WebSocket**: Connects to the Node.js WebSocket server[cite: 9].
+    2.  **Receive Query**: Listens for incoming messages (user queries) forwarded by the Node.js server[cite: 9].
+    3.  **Process Query**: When a query like "How many people are registered?" arrives[cite: 11]:
+        * It likely queries the registration database (or a vector representation of it, like a FAISS index) to retrieve relevant context (e.g., list of registered users, specific user timestamps)[cite: 10, 12].
+        * It combines the user's query and the retrieved context into a prompt.
+        * It sends this prompt to the LLM API (OpenAI's ChatGPT)[cite: 10].
+    4.  **Receive LLM Response**: Gets the generated answer back from the LLM.
+    5.  **Send Response**: Sends the final answer back through the WebSocket connection to the Node.js server, which then relays it to the Frontend[cite: 9].
+
+*(Note: The Python Face Recognition module, while not explicitly asked about in terms of flow, would receive image data, run detection/encoding/comparison algorithms, interact with the database for storing/retrieving encodings[cite: 5, 6], and return results like bounding boxes/names or registration status, likely via the Backend API.)*
