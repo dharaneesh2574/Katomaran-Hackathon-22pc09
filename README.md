@@ -16,6 +16,10 @@ https://www.loom.com/share/b7dfdb23850649c58ec87a3aa2865c92?sid=3df3cdb1-f7d4-4a
     └── rag_service/      # RAG service for chat
 ```
 
+### Architecture
+![image](https://github.com/user-attachments/assets/bb434f9b-261c-476e-93e5-181f0cf2b7e9)
+
+
 ## Prerequisites
 
 - Node.js (v14 or higher)
