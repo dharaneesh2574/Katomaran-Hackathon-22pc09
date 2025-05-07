@@ -1,17 +1,14 @@
-import cv2
 import numpy as np
 import base64
 from io import BytesIO
 from PIL import Image
 import socketio
-import json
-import asyncio
-import aiohttp
 from aiohttp import web
 import logging
 import face_recognition
-import os
 from datetime import datetime
+import aiohttp
+import asyncio
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -21,9 +18,20 @@ sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
 
-# Store known face encodings and names
-known_face_encodings = []
-known_face_names = []
+async def get_known_faces():
+    """Fetch known faces from the backend."""
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get('http://localhost:5000/api/face/allUsers') as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data['success']:
+                        return [(user['name'], np.array(user['encoding'])) for user in data['users']]
+                logger.error(f"Failed to fetch known faces: {response.status}")
+                return []
+    except Exception as e:
+        logger.error(f"Error fetching known faces: {e}")
+        return []
 
 def process_frame(frame_data):
     """Process a frame and return face locations and encodings."""
@@ -68,25 +76,12 @@ async def encode_face(request):
         if len(face_encodings) > 1:
             return web.json_response({'error': 'Multiple faces detected. Please ensure only one face is in the frame'}, status=400)
         
-        # Get facial area information
-        top, right, bottom, left = face_locations[0]
-        facial_area = {
-            'x': int(left),
-            'y': int(top),
-            'w': int(right - left),
-            'h': int(bottom - top),
-            'left_eye': None,
-            'right_eye': None
-        }
-        
         # Convert face encoding to list of floats
         face_encoding = face_encodings[0].tolist()
         
         return web.json_response({
             'success': True,
-            'encoding': face_encoding,
-            'facial_area': facial_area,
-            'face_confidence': 1.0
+            'encoding': face_encoding
         })
     except Exception as e:
         logger.error(f"Error encoding face: {e}")
@@ -99,6 +94,14 @@ async def recognize_faces(frame_data):
         
         if frame is None or not face_encodings:
             return []
+        
+        # Get known faces from backend
+        known_faces = await get_known_faces()
+        if not known_faces:
+            return []
+        
+        known_face_names, known_face_encodings = zip(*known_faces)
+        known_face_encodings = list(known_face_encodings)
         
         recognized_faces = []
         
