@@ -2,8 +2,8 @@
 
 A full-stack application that combines face recognition technology with a chat interface for querying registration information. The system uses React for the frontend, Node.js for the backend, and Python for face recognition and RAG (Retrieval-Augmented Generation) services.
 
-## DEMO 
-    link: https://www.loom.com/share/b7dfdb23850649c58ec87a3aa2865c92?sid=3df3cdb1-f7d4-4a23-affd-1981dcfb9d2b
+## DEMO  
+https://www.loom.com/share/b7dfdb23850649c58ec87a3aa2865c92?sid=3df3cdb1-f7d4-4a23-affd-1981dcfb9d2b
 
 ## Project Structure
 
