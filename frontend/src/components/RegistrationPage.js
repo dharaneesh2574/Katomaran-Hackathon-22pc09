@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSocket } from '../contexts/SocketContext';
 import { Box, Typography, Paper, TextField, Button, Alert } from '@mui/material';
+import axios from 'axios';
 
 const RegistrationPage = () => {
     const videoRef = useRef(null);
@@ -9,14 +9,10 @@ const RegistrationPage = () => {
     const [name, setName] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const { socket } = useSocket();
-    const streamInterval = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         return () => {
-            if (streamInterval.current) {
-                clearInterval(streamInterval.current);
-            }
             if (videoRef.current && videoRef.current.srcObject) {
                 const tracks = videoRef.current.srcObject.getTracks();
                 tracks.forEach(track => track.stop());
@@ -67,7 +63,7 @@ const RegistrationPage = () => {
         return null;
     };
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         if (!name.trim()) {
             setError('Please enter a name');
             return;
@@ -79,32 +75,29 @@ const RegistrationPage = () => {
             return;
         }
 
-        socket.emit('register', {
-            name: name.trim(),
-            image: frameData
-        });
-    };
+        try {
+            setIsLoading(true);
+            setError('');
+            setSuccess('');
 
-    useEffect(() => {
-        if (socket) {
-            socket.on('registration_result', (result) => {
-                if (result.error) {
-                    setError(result.error);
-                    setSuccess('');
-                } else {
-                    setSuccess(result.message);
-                    setError('');
-                    setName('');
-                }
+            const response = await axios.post('http://localhost:5000/api/face/register', {
+                name: name.trim(),
+                image: frameData
             });
-        }
 
-        return () => {
-            if (socket) {
-                socket.off('registration_result');
+            if (response.data.success) {
+                setSuccess(response.data.message);
+                setName('');
+            } else {
+                setError(response.data.error || 'Registration failed');
             }
-        };
-    }, [socket]);
+        } catch (error) {
+            console.error('Registration error:', error);
+            setError(error.response?.data?.error || 'Failed to register face');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <Box sx={{ p: 3 }}>
@@ -137,15 +130,15 @@ const RegistrationPage = () => {
                             label="Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            disabled={!isStreaming}
+                            disabled={!isStreaming || isLoading}
                         />
                         <Button
                             variant="contained"
                             color="primary"
                             onClick={handleRegister}
-                            disabled={!isStreaming || !name.trim()}
+                            disabled={!isStreaming || !name.trim() || isLoading}
                         >
-                            Register Face
+                            {isLoading ? 'Registering...' : 'Register Face'}
                         </Button>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 2 }}>
@@ -153,7 +146,7 @@ const RegistrationPage = () => {
                             variant="contained"
                             color="success"
                             onClick={startVideo}
-                            disabled={isStreaming}
+                            disabled={isStreaming || isLoading}
                         >
                             Start Camera
                         </Button>
@@ -161,7 +154,7 @@ const RegistrationPage = () => {
                             variant="contained"
                             color="error"
                             onClick={stopVideo}
-                            disabled={!isStreaming}
+                            disabled={!isStreaming || isLoading}
                         >
                             Stop Camera
                         </Button>

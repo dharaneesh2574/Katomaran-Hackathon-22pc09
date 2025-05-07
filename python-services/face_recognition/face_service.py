@@ -136,30 +136,6 @@ async def recognize_faces(frame_data):
         logger.error(f"Error recognizing faces: {e}")
         return []
 
-async def register_face(name, frame_data):
-    """Register a new face."""
-    try:
-        frame, face_locations, face_encodings = process_frame(frame_data)
-        
-        if len(face_encodings) == 0:
-            return {"error": "No face detected in the image"}
-        
-        if len(face_encodings) > 1:
-            return {"error": "Multiple faces detected. Please ensure only one face is in the frame"}
-        
-        # Store the face encoding and name
-        known_face_encodings.append(face_encodings[0])
-        known_face_names.append(name)
-        
-        return {
-            "success": True,
-            "message": f"Face registered for {name}",
-            "timestamp": datetime.now().isoformat()
-        }
-    except Exception as e:
-        logger.error(f"Error registering face: {e}")
-        return {"error": str(e)}
-
 @sio.event
 async def connect(sid, environ):
     logger.info(f"Client connected: {sid}")
@@ -167,11 +143,6 @@ async def connect(sid, environ):
 @sio.event
 async def disconnect(sid):
     logger.info(f"Client disconnected: {sid}")
-
-@sio.event
-async def register(sid, data):
-    result = await register_face(data['name'], data['image'])
-    await sio.emit('registration_result', result, room=sid)
 
 @sio.event
 async def frame(sid, data):

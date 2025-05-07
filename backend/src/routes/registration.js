@@ -17,36 +17,56 @@ router.post('/register', async (req, res) => {
       image: image
     });
 
-    if (!pythonServiceResponse.data.encoding) {
-      return res.status(400).json({ error: 'No face detected in the image' });
+    if (!pythonServiceResponse.data.success) {
+      return res.status(400).json({ error: pythonServiceResponse.data.error || 'Failed to encode face' });
     }
 
     const registration = new FaceRegistration({
       name,
-      faceEncoding: pythonServiceResponse.data.encoding
+      faceEncoding: pythonServiceResponse.data.encoding,
+      registeredAt: new Date()
     });
 
     await registration.save();
     res.status(201).json({ 
       success: true, 
       message: 'Face registered successfully',
-      registration 
+      registration: {
+        name: registration.name,
+        registeredAt: registration.registeredAt
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
+    if (error.response?.data?.error) {
+      return res.status(400).json({ error: error.response.data.error });
+    }
     res.status(500).json({ error: 'Failed to register face' });
   }
 });
 
-// Get all registered faces
-router.get('/registered', async (req, res) => {
+// Get all users with their face encodings
+router.get('/allUsers', async (req, res) => {
   try {
-    const registrations = await FaceRegistration.find().sort({ registeredAt: -1 });
-    res.json(registrations);
+    const users = await FaceRegistration.find()
+      .select('name faceEncoding')
+      .lean();
+
+    const formattedUsers = users.map(user => ({
+      name: user.name,
+      encoding: user.faceEncoding
+    }));
+
+    res.json({
+      success: true,
+      count: formattedUsers.length,
+      users: formattedUsers
+    });
   } catch (error) {
-    console.error('Error fetching registrations:', error);
-    res.status(500).json({ error: 'Failed to fetch registrations' });
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-module.exports = router; 
+module.exports = router;
+
