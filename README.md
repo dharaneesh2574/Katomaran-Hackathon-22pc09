@@ -2,6 +2,9 @@
 
 A full-stack application that combines face recognition technology with a chat interface for querying registration information. The system uses React for the frontend, Node.js for the backend, and Python for face recognition and RAG (Retrieval-Augmented Generation) services.
 
+## DEMO 
+    link: https://www.loom.com/share/b7dfdb23850649c58ec87a3aa2865c92?sid=3df3cdb1-f7d4-4a23-affd-1981dcfb9d2b
+
 ## Project Structure
 
 ```
@@ -139,14 +142,9 @@ The application will be available at:
 - Real-time query processing
 - Context-aware responses
 
-## Contributing
+## Screenshots 
+![image](https://github.com/user-attachments/assets/7afe3735-b7c1-444a-b5d8-e953cfd42227)
+![image](https://github.com/user-attachments/assets/35c2a21a-2011-4d0d-8922-47b0ba24c682)
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is a part of a hackathon run by https://katomaran.com
